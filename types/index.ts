@@ -16,12 +16,16 @@ export type AnimationLevel = 'none' | 'minimal' | 'moderate' | 'heavy';
 
 export type ToneStyle = 'standard' | 'casual';
 
+export type AudienceType = 'external' | 'internal';
+
 export type FileType = 'pdf' | 'excel' | 'word' | 'text' | 'audio' | 'image' | 'video' | 'url';
 
 export interface UserSettings {
   fontFamily: FontFamily;
   animationLevel: AnimationLevel;
   toneStyle: ToneStyle;
+  audienceType?: AudienceType;
+  companyName?: string;
   templateUrl?: string;
   googleAiStudioApiKey?: string;
   openaiApiKey?: string;

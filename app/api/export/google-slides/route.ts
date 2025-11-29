@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { processImagesForSlides } from '@/lib/media/image-service';
 
 export async function POST(request: NextRequest) {
   try {
-    const { slides, metadata, settings } = await request.json();
+    const { slides, metadata, settings, uploadedFiles } = await request.json();
 
     const googleAppsScriptUrl = 
       settings?.googleAppsScriptUrl || 
@@ -18,21 +19,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Process images for slides (search logos, generate illustrations/charts)
+    let companyLogoUrl = null;
+    const imageMap = await processImagesForSlides(
+      slides,
+      uploadedFiles || [],
+      settings?.companyName
+    );
+
+    // Get company logo URL if available
+    if (imageMap.has('company_logo')) {
+      companyLogoUrl = imageMap.get('company_logo')?.url || null;
+    }
+
     // Prepare data for Google Apps Script
     const payload = {
       metadata: {
         title: metadata.title || 'AI生成プレゼンテーション',
         createdAt: new Date().toISOString(),
-        settings,
+        templateUrl: settings?.templateUrl,
+        settings: {
+          ...settings,
+          companyLogoUrl, // Add company logo URL
+        },
       },
-      slides: slides.map((slide: any) => ({
-        slideNumber: slide.slideNumber,
-        templateType: slide.templateType || 'content',
-        title: slide.title,
-        keyMessage: slide.keyMessage,
-        layout: slide.layout || [],
-        speakerNotes: slide.speakerNotes || '',
-      })),
+      slides: slides.map((slide: any) => {
+        // Find image URL for this slide
+        let imageUrl = null;
+        if (slide.visualPrompts && Array.isArray(slide.visualPrompts)) {
+          for (const prompt of slide.visualPrompts) {
+            const key = `slide_${slide.slideNumber}_${prompt}`;
+            if (imageMap.has(key)) {
+              imageUrl = imageMap.get(key)?.url || null;
+              break;
+            }
+          }
+        }
+
+        return {
+          slideNumber: slide.slideNumber,
+          templateType: slide.templateType || 'content',
+          title: slide.title,
+          keyMessage: slide.keyMessage,
+          layout: slide.layout || [],
+          speakerNotes: slide.speakerNotes || '',
+          estimatedContent: slide.estimatedContent || '',
+          imageUrl, // Add image URL for this slide
+        };
+      }),
     };
 
     // Call Google Apps Script Web App

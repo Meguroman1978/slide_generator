@@ -112,15 +112,53 @@ export function SettingsDialog() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="template">テンプレートURL（オプション）</Label>
+                <Label htmlFor="audienceType">対象オーディエンス</Label>
+                <Select
+                  value={settings.audienceType || 'external'}
+                  onValueChange={(value) => updateSettings({ audienceType: value as 'external' | 'internal' })}
+                >
+                  <SelectTrigger id="audienceType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="external">社外向け資料</SelectItem>
+                    <SelectItem value="internal">社内向け資料</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {settings.audienceType === 'external' && (
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">会社名/ブランド名</Label>
+                  <Input
+                    id="companyName"
+                    type="text"
+                    placeholder="例: 株式会社サンプル"
+                    value={settings.companyName || ''}
+                    onChange={(e) => updateSettings({ companyName: e.target.value })}
+                    autoComplete="off"
+                    data-form-type="other"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    プレゼンテーション対象の会社名やブランド名を入力してください
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="template">テンプレートURL</Label>
                 <Input
                   id="template"
-                  placeholder="Google Slides または PPTX ファイルのURL"
+                  type="url"
+                  placeholder="https://docs.google.com/presentation/d/..."
                   value={settings.templateUrl || ''}
                   onChange={(e) => updateSettings({ templateUrl: e.target.value })}
+                  autoComplete="off"
+                  data-form-type="other"
                 />
                 <p className="text-xs text-muted-foreground">
-                  カスタムテンプレートを使用する場合はURLを入力してください
+                  デフォルト: 標準テンプレート（変数置換対応）<br />
+                  カスタムテンプレートを使用する場合は別のURLを入力してください
                 </p>
               </div>
             </div>
@@ -246,6 +284,9 @@ export function SettingsDialog() {
                   placeholder="AIzaSy..."
                   value={settings.googleAiStudioApiKey || ''}
                   onChange={(e) => updateSettings({ googleAiStudioApiKey: e.target.value })}
+                  autoComplete="off"
+                  data-form-type="other"
+                  data-lpignore="true"
                 />
                 <p className="text-xs text-muted-foreground">
                   Gemini APIを優先的に使用します。高速で低コストです。
@@ -263,6 +304,9 @@ export function SettingsDialog() {
                   placeholder="sk-..."
                   value={settings.openaiApiKey || ''}
                   onChange={(e) => updateSettings({ openaiApiKey: e.target.value })}
+                  autoComplete="off"
+                  data-form-type="other"
+                  data-lpignore="true"
                 />
                 <p className="text-xs text-muted-foreground">
                   Google AI Studio APIが利用できない場合に使用されます。
@@ -273,9 +317,12 @@ export function SettingsDialog() {
                 <Label htmlFor="gas-url">Google Apps Script URL（オプション）</Label>
                 <Input
                   id="gas-url"
+                  type="url"
                   placeholder="https://script.google.com/..."
                   value={settings.googleAppsScriptUrl || ''}
                   onChange={(e) => updateSettings({ googleAppsScriptUrl: e.target.value })}
+                  autoComplete="off"
+                  data-form-type="other"
                 />
               </div>
 
