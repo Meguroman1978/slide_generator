@@ -35,7 +35,7 @@ curl -X POST "YOUR_URL" -H "Content-Type: application/json" -d '{"test":"data"}'
 1. https://script.google.com/ にアクセス
 2. あなたのプロジェクトを開く:
    ```
-   https://script.google.com/home/projects/1jNYa8PcRVq4Xs6VJZx2kMiBia7Wb2MA5XYj-9PayR_MeLUYLN…/edit
+   https://script.google.com/home/projects/1f86p4jLM8nCdCLUqi_3EiCLXp_lsR4-FuumQJytHB21CoT1PZ0aFY_Kn/edit
    ```
 
 #### ステップ2: Code.gsに正しいコードを貼り付け

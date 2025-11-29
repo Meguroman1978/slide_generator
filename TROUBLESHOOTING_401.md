@@ -31,7 +31,10 @@ Page Not Found エラー
 ### ステップ1: Apps Script プロジェクトを開く
 
 1. https://script.google.com/ にアクセス
-2. あなたのプロジェクト (`1jNYa8PcRVq4Xs6VJZx2kMiBia7Wb2MA5XYj-9PayR_MeLUYLN…`) を開く
+2. あなたのプロジェクトを開く:
+   ```
+   https://script.google.com/home/projects/1f86p4jLM8nCdCLUqi_3EiCLXp_lsR4-FuumQJytHB21CoT1PZ0aFY_Kn/edit
+   ```
 
 ### ステップ2: コードを確認・更新
 
