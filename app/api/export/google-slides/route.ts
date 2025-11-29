@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
                         process.env.DEFAULT_TEMPLATE_URL || 
                         'https://docs.google.com/presentation/d/1p826KUscu_89-uu7-ILYdxD21EpJbhcSTUhGX3WrI5Q/edit';
 
-    console.log('Using template URL:', templateUrl);
+    console.log('=== TEMPLATE DEBUG ===');
+    console.log('Settings templateUrl:', settings?.templateUrl);
+    console.log('Env DEFAULT_TEMPLATE_URL:', process.env.DEFAULT_TEMPLATE_URL);
+    console.log('Final templateUrl:', templateUrl);
+    console.log('=====================');
 
     // Prepare data for Google Apps Script
     const payload = {

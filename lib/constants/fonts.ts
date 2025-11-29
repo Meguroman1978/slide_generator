@@ -31,4 +31,5 @@ export const DEFAULT_SETTINGS = {
   toneStyle: 'standard' as const,
   audienceType: 'external' as const,
   templateUrl: 'https://docs.google.com/presentation/d/1p826KUscu_89-uu7-ILYdxD21EpJbhcSTUhGX3WrI5Q/edit',
+  googleAppsScriptUrl: 'https://script.google.com/macros/s/AKfycbwtVoGswlpuwW_A9rMyB_N5lOeaOJHk1DT1I2zxsDjtk1DsJv2B8RGGwUF58uwXrpfz_Q/exec',
 };

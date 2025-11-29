@@ -284,16 +284,62 @@ export function SettingsDialog() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="gas-url">Google Apps Script URL（オプション）</Label>
+                <Label htmlFor="gas-url">Google Apps Script URL</Label>
                 <Input
                   id="gas-url"
                   type="url"
-                  placeholder="https://script.google.com/..."
-                  value={settings.googleAppsScriptUrl || ''}
+                  placeholder="https://script.google.com/macros/s/..."
+                  value={settings.googleAppsScriptUrl || 'https://script.google.com/macros/s/AKfycbwtVoGswlpuwW_A9rMyB_N5lOeaOJHk1DT1I2zxsDjtk1DsJv2B8RGGwUF58uwXrpfz_Q/exec'}
                   onChange={(e) => updateSettings({ googleAppsScriptUrl: e.target.value })}
                   autoComplete="off"
                   data-form-type="other"
+                  readOnly={!settings.googleAppsScriptUrl}
                 />
+                <p className="text-xs text-muted-foreground">
+                  <strong>デフォルトURL（常に表示）:</strong> https://script.google.com/macros/s/AKfycbwtVoGswlpuwW_A9rMyB_N5lOeaOJHk1DT1I2zxsDjtk1DsJv2B8RGGwUF58uwXrpfz_Q/exec<br />
+                  このURLが自動的に使用されます。別のスクリプトを使用する場合のみ変更してください。
+                </p>
+                <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-900 rounded">
+                  <div className="flex gap-2">
+                    <Info className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-orange-900 dark:text-orange-100 mb-2">
+                        ⚠️ 重要: テンプレートが使われていない場合
+                      </p>
+                      <p className="text-orange-800 dark:text-orange-200 mb-2">
+                        Google Apps Scriptの更新が必要です。以下の手順に従ってください：
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1 text-orange-800 dark:text-orange-200 text-xs">
+                        <li>
+                          <a
+                            href="https://script.google.com/home/projects/1f86p4jLM8nCdCLUqi_3EiCLXp_lsR4-FuumQJytHB21CoT1PZ0aFY_Kn/edit"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-orange-900 dark:text-orange-100 font-medium hover:underline"
+                          >
+                            Google Apps Scriptプロジェクトを開く
+                          </a>
+                        </li>
+                        <li>
+                          <code className="bg-orange-100 dark:bg-orange-900 px-1 py-0.5 rounded">
+                            apps-script/Code-Template-Enhanced.gs
+                          </code>
+                          の内容を
+                          <code className="bg-orange-100 dark:bg-orange-900 px-1 py-0.5 rounded">
+                            Code.gs
+                          </code>
+                          にコピー
+                        </li>
+                        <li>「デプロイ」→「デプロイを管理」→「編集」をクリック</li>
+                        <li>「バージョン」を「新バージョン」に変更</li>
+                        <li>「デプロイ」をクリックしてURLをコピー（同じURLのままです）</li>
+                      </ol>
+                      <p className="text-orange-800 dark:text-orange-200 mt-2 text-xs">
+                        <strong>注:</strong> 既存のデプロイURLは変わりませんが、スクリプトコードの更新が反映されます。
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <Card className="p-4 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-900">

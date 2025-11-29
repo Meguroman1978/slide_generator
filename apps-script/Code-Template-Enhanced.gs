@@ -30,7 +30,17 @@ function doPost(e) {
       });
     }
     
-    var templateUrl = data.metadata.templateUrl || data.metadata.settings?.templateUrl;
+    // デバッグログ
+    Logger.log('=== RECEIVED DATA DEBUG ===');
+    Logger.log('data.metadata.templateUrl: ' + data.metadata.templateUrl);
+    Logger.log('data.metadata.settings: ' + JSON.stringify(data.metadata.settings));
+    Logger.log('data.metadata.settings?.templateUrl: ' + (data.metadata.settings ? data.metadata.settings.templateUrl : 'undefined'));
+    
+    var templateUrl = data.metadata.templateUrl || (data.metadata.settings ? data.metadata.settings.templateUrl : null);
+    
+    Logger.log('Final templateUrl: ' + templateUrl);
+    Logger.log('===========================');
+    
     var presentation;
     var presentationId;
     
@@ -47,7 +57,7 @@ function doPost(e) {
       generateAgendaSlides(presentation, data);
     } else {
       // テンプレートなし: 通常の生成（既存のロジック）
-      Logger.log('Creating presentation without template');
+      Logger.log('WARNING: Creating presentation without template - templateUrl is null/undefined');
       presentation = SlidesApp.create(data.metadata.title);
       presentationId = presentation.getId();
       
