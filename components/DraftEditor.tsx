@@ -208,7 +208,14 @@ export function DraftEditor({ draft: initialDraft, onSave }: DraftEditorProps) {
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-lg">目次</h3>
+            <div>
+              <h3 className="font-bold text-lg">目次</h3>
+              {draft.tableOfContents.length === draft.slides.length && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  🔗 スライドと同期中（目次を削除すると対応スライドも削除されます）
+                </p>
+              )}
+            </div>
             <Button variant="outline" size="sm" onClick={addTableOfContentsItem}>
               <Plus className="w-4 h-4 mr-2" />
               項目を追加
@@ -217,6 +224,9 @@ export function DraftEditor({ draft: initialDraft, onSave }: DraftEditorProps) {
           <div className="space-y-2">
             {draft.tableOfContents.map((item, index) => (
               <div key={index} className="flex gap-2">
+                <Badge variant="outline" className="px-2 min-w-[32px] justify-center">
+                  {index + 1}
+                </Badge>
                 <Input
                   value={item}
                   onChange={(e) => updateTableOfContents(index, e.target.value)}
@@ -237,7 +247,14 @@ export function DraftEditor({ draft: initialDraft, onSave }: DraftEditorProps) {
       {/* Slides */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-lg">スライド構成</h3>
+          <div>
+            <h3 className="font-bold text-lg">スライド構成</h3>
+            {draft.tableOfContents.length === draft.slides.length && (
+              <p className="text-xs text-muted-foreground mt-1">
+                🔗 目次と同期中（スライドを削除すると対応する目次項目も削除されます）
+              </p>
+            )}
+          </div>
           <Button variant="outline" onClick={addSlide}>
             <Plus className="w-4 h-4 mr-2" />
             スライドを追加
