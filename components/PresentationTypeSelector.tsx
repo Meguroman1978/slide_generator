@@ -25,7 +25,7 @@ const PRESENTATION_TYPES = [
   { value: 'custom', label: 'カスタム（自由入力）' },
 ];
 
-export default function PresentationTypeSelector({ value, onChange }: PresentationTypeSelectorProps) {
+export function PresentationTypeSelector({ value, onChange }: PresentationTypeSelectorProps) {
   const [isCustom, setIsCustom] = useState(false);
   const [customValue, setCustomValue] = useState('');
 
