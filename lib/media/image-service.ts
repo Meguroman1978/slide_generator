@@ -35,7 +35,9 @@ export async function searchCompanyLogo(
     // Web search for company logo
     const searchQuery = `${companyName} ロゴ 公式`;
     
-    const response = await fetch('/api/media/search-logo', {
+    // Use absolute URL for server-side fetch
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3010';
+    const response = await fetch(`${baseUrl}/api/media/search-logo`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -139,7 +141,9 @@ async function generateIllustration(
   aspectRatio: string = '16:9'
 ): Promise<ImageSearchResult | null> {
   try {
-    const response = await fetch('/api/media/generate-image', {
+    // Use absolute URL for server-side fetch
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3010';
+    const response = await fetch(`${baseUrl}/api/media/generate-image`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -176,7 +180,9 @@ async function generateChart(
   aspectRatio: string = '16:9'
 ): Promise<ImageSearchResult | null> {
   try {
-    const response = await fetch('/api/media/generate-image', {
+    // Use absolute URL for server-side fetch
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3010';
+    const response = await fetch(`${baseUrl}/api/media/generate-image`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -212,7 +218,9 @@ async function searchWebImage(
   query: string
 ): Promise<ImageSearchResult | null> {
   try {
-    const response = await fetch('/api/media/search-image', {
+    // Use absolute URL for server-side fetch
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3010';
+    const response = await fetch(`${baseUrl}/api/media/search-image`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

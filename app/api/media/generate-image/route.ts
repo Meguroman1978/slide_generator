@@ -16,8 +16,9 @@ export async function POST(request: NextRequest) {
     if (!selectedModel) {
       if (imageType === 'illustration') {
         selectedModel = 'nano-banana-pro';
-      } else if (imageType === 'chart') {
-        selectedModel = 'gemini/veo3';
+      } else if (imageType === 'chart' || imageType === 'diagram') {
+        // Use ideogram or other chart-friendly models
+        selectedModel = 'ideogram/V_3';
       } else {
         selectedModel = 'nano-banana-pro'; // default
       }
@@ -25,24 +26,46 @@ export async function POST(request: NextRequest) {
 
     console.log(`Generating ${imageType} image with model ${selectedModel}: ${query}`);
 
-    // Note: In production, you would integrate with the image_generation tool
-    // For now, return a placeholder response
+    // Prepare detailed prompt based on image type
+    let enhancedQuery = query;
+    if (imageType === 'illustration') {
+      enhancedQuery = `Professional business illustration: ${query}. High quality, corporate style, suitable for presentation slides, clean design, modern aesthetic.`;
+    } else if (imageType === 'chart') {
+      enhancedQuery = `Professional business chart or diagram: ${query}. Clear data visualization, clean layout, suitable for presentation slides, professional color scheme, easy to understand.`;
+    }
+
+    // Note: This requires GenSpark image_generation tool integration
+    // Since we can't directly call the image_generation tool from here,
+    // we'll return a structured response that indicates what should be generated
     
-    // In a real implementation, you would call:
-    // const result = await image_generation({
-    //   query,
+    // In a production environment with GenSpark integration:
+    // const imageResult = await image_generation({
+    //   query: enhancedQuery,
     //   model: selectedModel,
     //   aspect_ratio: aspectRatio || '16:9',
     //   image_urls: [],
-    //   task_summary: `Generate ${imageType} for presentation`
+    //   task_summary: `Generate ${imageType} for AI presentation: ${query}`
     // });
 
+    // For now, return a placeholder that indicates the system is ready for image generation
     return NextResponse.json({
       success: true,
-      imageUrl: null, // Will be populated by actual generation
-      message: `Image generation initiated`,
+      imageUrl: null, // Will be populated by actual generation tool
+      message: `Image generation initiated for: ${query}`,
       model: selectedModel,
-      query,
+      query: enhancedQuery,
+      imageType,
+      aspectRatio: aspectRatio || '16:9',
+      // Indicate that GenSpark image_generation tool should be called
+      requiresGenSparkTool: true,
+      toolName: 'image_generation',
+      toolParams: {
+        query: enhancedQuery,
+        model: selectedModel,
+        aspect_ratio: aspectRatio || '16:9',
+        image_urls: [],
+        task_summary: `Generate ${imageType} for AI presentation: ${query}`
+      }
     });
 
   } catch (error: any) {
