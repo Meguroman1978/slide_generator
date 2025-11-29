@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, unlink } from 'fs/promises';
-import { join } from 'path';
-import pdf from 'pdf-parse';
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,7 +63,9 @@ async function parsePDFFile(file: File) {
   const buffer = Buffer.from(bytes);
   
   try {
-    const data = await pdf(buffer);
+    // Dynamic import to avoid ESM issues
+    const pdfParse = (await import('pdf-parse')).default;
+    const data = await pdfParse(buffer);
     
     return NextResponse.json({
       content: data.text,
@@ -91,6 +88,8 @@ async function parseWordFile(file: File) {
   const buffer = Buffer.from(bytes);
   
   try {
+    // Dynamic import
+    const mammoth = (await import('mammoth')).default;
     const result = await mammoth.extractRawText({ buffer });
     
     return NextResponse.json({
@@ -113,6 +112,8 @@ async function parseExcelFile(file: File) {
   const buffer = Buffer.from(bytes);
   
   try {
+    // Dynamic import
+    const XLSX = await import('xlsx');
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     
     let content = '';
