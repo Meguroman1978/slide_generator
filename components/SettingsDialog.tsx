@@ -173,10 +173,38 @@ export function SettingsDialog() {
                     <div>
                       <p className="font-medium">Google Apps Script URL（スライド生成用）</p>
                       <ol className="list-decimal list-inside space-y-1 text-muted-foreground mt-1">
-                        <li>Google Apps Script でスライド生成スクリプトをデプロイ</li>
-                        <li>「Web app」としてデプロイし、URLを取得</li>
+                        <li>
+                          <a
+                            href="https://script.google.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            script.google.com
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          で新しいプロジェクト作成
+                        </li>
+                        <li>
+                          <code className="text-xs bg-muted px-1 py-0.5 rounded">apps-script/Code.gs</code>
+                          の内容をコピー&ペースト
+                        </li>
+                        <li>「デプロイ」→「新しいデプロイ」→「ウェブアプリ」を選択</li>
+                        <li>
+                          <strong>アクセス権限:</strong> 「アクセスできるユーザー」を
+                          <span className="text-primary font-medium">「全員」</span>に設定
+                        </li>
+                        <li>「デプロイ」をクリックしてURLをコピー</li>
                         <li>取得したURLを下記に貼り付け</li>
                       </ol>
+                      <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
+                        <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                          💡 簡単3ステップ:
+                        </p>
+                        <p className="text-blue-800 dark:text-blue-200">
+                          1️⃣ コードをコピー → 2️⃣ ウェブアプリとしてデプロイ → 3️⃣ URLを取得
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </Card>

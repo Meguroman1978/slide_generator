@@ -11,6 +11,7 @@ import { FileUploader } from '@/components/FileUploader';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { StorylineSelector } from '@/components/StorylineSelector';
 import { DraftReview } from '@/components/DraftReview';
+import { DraftEditor } from '@/components/DraftEditor';
 import { usePresentationStore } from '@/lib/stores/presentationStore';
 import { toast } from 'sonner';
 
@@ -429,6 +430,7 @@ export default function Home() {
               proposals={storylineProposals}
               selectedId={selectedStoryline?.id || null}
               onSelect={selectStoryline}
+              analysisContext={analysisResults[0]}
             />
 
             <div className="flex justify-end">
@@ -454,7 +456,22 @@ export default function Home() {
 
           {/* Draft Tab */}
           <TabsContent value="draft" className="space-y-6">
-            {draft && <DraftReview draft={draft} />}
+            {draft && (
+              <>
+                <Tabs defaultValue="preview">
+                  <TabsList>
+                    <TabsTrigger value="preview">プレビュー</TabsTrigger>
+                    <TabsTrigger value="edit">編集モード</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="preview" className="mt-4">
+                    <DraftReview draft={draft} />
+                  </TabsContent>
+                  <TabsContent value="edit" className="mt-4">
+                    <DraftEditor draft={draft} onSave={(updatedDraft) => setDraft(updatedDraft)} />
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
 
             <div className="flex justify-end gap-4">
               <Button variant="outline" onClick={() => setCurrentStep('storyline')}>

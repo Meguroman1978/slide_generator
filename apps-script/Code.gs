@@ -15,7 +15,31 @@
 
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
+    // Parse incoming data
+    var data;
+    try {
+      data = JSON.parse(e.postData.contents);
+    } catch (parseError) {
+      return createJsonResponse({
+        success: false,
+        error: 'Invalid JSON: ' + parseError.toString()
+      });
+    }
+    
+    // Validate required fields
+    if (!data.metadata || !data.metadata.title) {
+      return createJsonResponse({
+        success: false,
+        error: 'Missing required field: metadata.title'
+      });
+    }
+    
+    if (!data.slides || !Array.isArray(data.slides)) {
+      return createJsonResponse({
+        success: false,
+        error: 'Missing or invalid slides array'
+      });
+    }
     
     // Create a new presentation
     var presentation = SlidesApp.create(data.metadata.title);
@@ -58,18 +82,26 @@ function doPost(e) {
     });
     
     // Return the presentation URL
-    return ContentService.createTextOutput(JSON.stringify({
+    return createJsonResponse({
       success: true,
       presentationId: presentationId,
       url: presentation.getUrl()
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
     
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
+    Logger.log('Error in doPost: ' + error.toString());
+    return createJsonResponse({
       success: false,
       error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
   }
+}
+
+// Helper function to create JSON response with CORS headers
+function createJsonResponse(data) {
+  var output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+  return output;
 }
 
 function createCoverSlide(slide, data) {
@@ -156,8 +188,9 @@ function createConclusionSlide(slide, data) {
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
+  return createJsonResponse({
     status: 'ok',
-    message: 'AI Presentation Generator - Google Apps Script is running'
-  })).setMimeType(ContentService.MimeType.JSON);
+    message: 'AI Presentation Generator - Google Apps Script is running',
+    timestamp: new Date().toISOString()
+  });
 }
