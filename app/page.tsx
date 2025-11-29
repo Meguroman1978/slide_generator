@@ -14,6 +14,7 @@ import { DraftReview } from '@/components/DraftReview';
 import { DraftEditor } from '@/components/DraftEditor';
 import { PresentationTypeSelector } from '@/components/PresentationTypeSelector';
 import { AudienceSelector } from '@/components/AudienceSelector';
+import { SlideCountSelector } from '@/components/SlideCountSelector';
 import { usePresentationStore } from '@/lib/stores/presentationStore';
 import { toast } from 'sonner';
 
@@ -41,6 +42,7 @@ export default function Home() {
   const [userInstructions, setUserInstructions] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [slideCount, setSlideCount] = useState(15); // デフォルト15枚
 
   const handleAnalyze = async () => {
     if (uploadedFiles.length === 0) {
@@ -147,6 +149,7 @@ export default function Home() {
           storyline: selectedStoryline,
           analysis: analysisResults[0],
           settings,
+          slideCount, // スライド枚数を追加
         }),
       });
 
@@ -354,6 +357,11 @@ export default function Home() {
             <PresentationTypeSelector
               value={presentationType}
               onChange={setPresentationType}
+            />
+
+            <SlideCountSelector
+              slideCount={slideCount}
+              onSlideCountChange={setSlideCount}
             />
 
             <Card className="p-6">

@@ -4,7 +4,7 @@ import { DESIGN_SYSTEM_PROMPT } from '@/lib/constants/design-rules';
 
 export async function POST(request: NextRequest) {
   try {
-    const { storyline, analysis, settings } = await request.json();
+    const { storyline, analysis, settings, slideCount = 15 } = await request.json();
 
     const openaiKey = settings?.openaiApiKey || process.env.OPENAI_API_KEY;
 
@@ -70,12 +70,13 @@ ${JSON.stringify(analysis, null, 2)}
 8. **まとめスライド**: キーメッセージの再確認
 
 【品質基準】
-- スライド数: 10-15枚（充実した内容）
+- スライド数: **必ず${slideCount}枚**（ユーザー指定）
 - 各スライドのestimatedContent: 100-200字の具体的内容
 - データドリブン: 分析データを最大限活用
 - ストーリー性: 論理的な流れで説得力を持たせる
 - 視覚化の指示: 「グラフ表示」「画像」など視覚要素を指定
 
+**重要**: totalSlidesは必ず${slideCount}枚とし、slidesの配列も正確に${slideCount}個のスライドを含めてください。
 **必ず各スライドのestimatedContentに具体的で詳細な内容を記載してください！**
 `;
 
