@@ -204,14 +204,115 @@ export default function Home() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExportGoogleSlides = async () => {
     if (slides.length === 0) {
       toast.error('先にスライドを生成してください');
       return;
     }
 
-    toast.info('エクスポート機能は実装中です');
-    // Export logic will be implemented
+    setIsProcessing(true);
+    toast.info('Google Slidesを生成中...');
+
+    try {
+      const response = await fetch('/api/export/google-slides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slides,
+          metadata: {
+            title: draft?.title || 'AI生成プレゼンテーション',
+          },
+          settings,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.needsSetup) {
+          toast.error(result.error, {
+            duration: 5000,
+            action: {
+              label: '設定を開く',
+              onClick: () => {
+                // Settings dialog will open
+              },
+            },
+          });
+        } else {
+          throw new Error(result.error || 'エクスポートに失敗しました');
+        }
+        setIsProcessing(false);
+        return;
+      }
+
+      toast.success('Google Slidesの作成に成功しました！');
+      
+      // Open the generated presentation in a new tab
+      if (result.url) {
+        window.open(result.url, '_blank');
+      }
+
+      setIsProcessing(false);
+    } catch (error: any) {
+      console.error('Google Slides export error:', error);
+      toast.error(`エクスポートに失敗しました: ${error.message}`);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleExportPowerPoint = async () => {
+    if (slides.length === 0) {
+      toast.error('先にスライドを生成してください');
+      return;
+    }
+
+    setIsProcessing(true);
+    toast.info('PowerPointデータを生成中...');
+
+    try {
+      const response = await fetch('/api/export/powerpoint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slides,
+          metadata: {
+            title: draft?.title || 'AI生成プレゼンテーション',
+          },
+          settings,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'エクスポートに失敗しました');
+      }
+
+      const result = await response.json();
+
+      // Download as JSON file
+      const dataStr = JSON.stringify(result.data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${result.data.metadata.title || 'presentation'}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('PowerPointデータをダウンロードしました！', {
+        description: 'JSONファイルをPowerPoint変換ツールで開いてください',
+        duration: 5000,
+      });
+
+      setIsProcessing(false);
+    } catch (error: any) {
+      console.error('PowerPoint export error:', error);
+      toast.error(`エクスポートに失敗しました: ${error.message}`);
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -421,18 +522,120 @@ export default function Home() {
               </p>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Button onClick={handleExport} size="lg" className="h-24">
-                  <div className="flex flex-col items-center gap-2">
-                    <Download className="w-6 h-6" />
-                    <span>Google Slides</span>
+                <Card className="p-6 border-2 hover:border-primary transition-colors">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Presentation className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Google Slides</h3>
+                        <p className="text-sm text-muted-foreground">
+                          クラウドで直接編集可能
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="text-sm space-y-2 text-muted-foreground">
+                      <li>✓ ブラウザで即座に開く</li>
+                      <li>✓ リアルタイム共同編集</li>
+                      <li>✓ 自動保存・バージョン管理</li>
+                    </ul>
+                    <Button 
+                      onClick={handleExportGoogleSlides} 
+                      disabled={isProcessing}
+                      size="lg" 
+                      className="w-full"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-5 h-5 mr-2" />
+                          Google Slidesで開く
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      ※ Google Apps Script URLの設定が必要です
+                    </p>
                   </div>
-                </Button>
-                <Button onClick={handleExport} size="lg" variant="outline" className="h-24">
-                  <div className="flex flex-col items-center gap-2">
-                    <Download className="w-6 h-6" />
-                    <span>PowerPoint (PPTX)</span>
+                </Card>
+
+                <Card className="p-6 border-2 hover:border-primary transition-colors">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">PowerPoint</h3>
+                        <p className="text-sm text-muted-foreground">
+                          JSONデータをダウンロード
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="text-sm space-y-2 text-muted-foreground">
+                      <li>✓ 構造化データを取得</li>
+                      <li>✓ カスタム変換ツール対応</li>
+                      <li>✓ オフライン編集可能</li>
+                    </ul>
+                    <Button 
+                      onClick={handleExportPowerPoint}
+                      disabled={isProcessing}
+                      size="lg" 
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-5 h-5 mr-2" />
+                          JSONをダウンロード
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      ※ JSONファイルを変換ツールで処理してください
+                    </p>
                   </div>
-                </Button>
+                </Card>
+              </div>
+            </Card>
+
+            {/* Instructions */}
+            <Card className="p-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
+              <h3 className="font-bold mb-3 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+                エクスポート後の使い方
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="font-medium">Google Slides:</p>
+                  <p className="text-muted-foreground">
+                    1. 「Google Slidesで開く」をクリック
+                    <br />
+                    2. 新しいタブでプレゼンテーションが開きます
+                    <br />
+                    3. Google Driveに自動保存されます
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium">PowerPoint:</p>
+                  <p className="text-muted-foreground">
+                    1. 「JSONをダウンロード」をクリック
+                    <br />
+                    2. ダウンロードしたJSONファイルを保存
+                    <br />
+                    3. PowerPoint変換ツールでPPTXに変換（今後のアップデートで直接PPTX出力対応予定）
+                  </p>
+                </div>
               </div>
             </Card>
           </TabsContent>
