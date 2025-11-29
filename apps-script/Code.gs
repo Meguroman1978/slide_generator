@@ -1,0 +1,163 @@
+/**
+ * AI Presentation Generator - Google Apps Script
+ * 
+ * このスクリプトは、AI Presentation GeneratorからのリクエストをGoogle Slidesに変換します。
+ * 
+ * セットアップ手順:
+ * 1. Google Apps Script (https://script.google.com/) で新しいプロジェクトを作成
+ * 2. このコードをCode.gsに貼り付け
+ * 3. 「デプロイ」→「新しいデプロイ」→「ウェブアプリ」を選択
+ * 4. 「次のユーザーとして実行」を「自分」に設定
+ * 5. 「アクセスできるユーザー」を「全員」に設定
+ * 6. 「デプロイ」をクリックしてURLを取得
+ * 7. 取得したURLをWebアプリの設定に追加
+ */
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    
+    // Create a new presentation
+    var presentation = SlidesApp.create(data.metadata.title);
+    var presentationId = presentation.getId();
+    
+    // Get the first slide (title slide) and clear it
+    var slides = presentation.getSlides();
+    if (slides.length > 0) {
+      slides[0].remove();
+    }
+    
+    // Process each slide
+    data.slides.forEach(function(slideData, index) {
+      var slide;
+      
+      // Determine slide layout based on template type
+      switch (slideData.templateType) {
+        case 'cover':
+          slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE);
+          createCoverSlide(slide, slideData);
+          break;
+        case 'section':
+          slide = presentation.appendSlide(SlidesApp.PredefinedLayout.SECTION_HEADER);
+          createSectionSlide(slide, slideData);
+          break;
+        case 'conclusion':
+          slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
+          createConclusionSlide(slide, slideData);
+          break;
+        default:
+          slide = presentation.appendSlide(SlidesApp.PredefinedLayout.BLANK);
+          createContentSlide(slide, slideData);
+          break;
+      }
+      
+      // Add speaker notes
+      if (slideData.speakerNotes) {
+        slide.getNotesPage().getSpeakerNotesShape().getText().setText(slideData.speakerNotes);
+      }
+    });
+    
+    // Return the presentation URL
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      presentationId: presentationId,
+      url: presentation.getUrl()
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function createCoverSlide(slide, data) {
+  // Title
+  var titleShape = slide.getShapes()[0];
+  titleShape.getText().setText(data.title);
+  
+  // Subtitle (key message)
+  if (slide.getShapes().length > 1) {
+    var subtitleShape = slide.getShapes()[1];
+    subtitleShape.getText().setText(data.keyMessage);
+  }
+}
+
+function createSectionSlide(slide, data) {
+  var titleShape = slide.getShapes()[0];
+  titleShape.getText().setText(data.title);
+}
+
+function createContentSlide(slide, data) {
+  var pageWidth = 720; // Points (10 inches)
+  var pageHeight = 540; // Points (7.5 inches)
+  
+  // Add title at the top
+  var titleBox = slide.insertTextBox(data.title, 40, 30, pageWidth - 80, 60);
+  titleBox.getText()
+    .getTextStyle()
+    .setFontSize(24)
+    .setBold(true);
+  
+  // Add key message (emphasized)
+  var keyMessageBox = slide.insertTextBox(data.keyMessage, 40, 100, pageWidth - 80, 80);
+  keyMessageBox.getText()
+    .getTextStyle()
+    .setFontSize(18)
+    .setBold(true)
+    .setForegroundColor('#1e40af'); // Primary blue color
+  
+  // Add layout elements
+  var currentY = 200;
+  
+  data.layout.forEach(function(element) {
+    if (element.type === 'text') {
+      var textBox = slide.insertTextBox(
+        element.content,
+        element.position.x,
+        element.position.y || currentY,
+        element.position.width,
+        element.position.height
+      );
+      
+      // Apply styles
+      var textStyle = textBox.getText().getTextStyle();
+      if (element.style && element.style.fontSize) {
+        textStyle.setFontSize(element.style.fontSize);
+      }
+      if (element.style && element.style.fontWeight === 'bold') {
+        textStyle.setBold(true);
+      }
+      if (element.style && element.style.color) {
+        textStyle.setForegroundColor(element.style.color);
+      }
+      
+      currentY += element.position.height + 20;
+    }
+  });
+}
+
+function createConclusionSlide(slide, data) {
+  var pageWidth = 720;
+  
+  // Title
+  var titleBox = slide.insertTextBox(data.title, 40, 30, pageWidth - 80, 60);
+  titleBox.getText()
+    .getTextStyle()
+    .setFontSize(28)
+    .setBold(true);
+  
+  // Key message (summary)
+  var keyMessageBox = slide.insertTextBox(data.keyMessage, 40, 120, pageWidth - 80, 300);
+  keyMessageBox.getText()
+    .getTextStyle()
+    .setFontSize(20);
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'ok',
+    message: 'AI Presentation Generator - Google Apps Script is running'
+  })).setMimeType(ContentService.MimeType.JSON);
+}

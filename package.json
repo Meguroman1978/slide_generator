@@ -1,0 +1,60 @@
+{
+  "name": "ai-presentation-generator",
+  "version": "1.0.0",
+  "description": "世界最高峰のAIプレゼンテーション生成ツール",
+  "author": "AI Presentation Generator Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Meguroman1978/slide_generator.git"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-progress": "^1.1.8",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slider": "^1.3.6",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-toast": "^1.2.15",
+    "anthropic": "^0.0.0",
+    "axios": "^1.13.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "ffmpeg-static": "^5.3.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "formidable": "^3.5.4",
+    "lucide-react": "^0.555.0",
+    "mammoth": "^1.11.0",
+    "next": "16.0.5",
+    "next-themes": "^0.4.6",
+    "openai": "^6.9.1",
+    "pdf-parse": "^2.4.5",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-dropzone": "^14.3.8",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.4.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.5",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5"
+  }
+}
