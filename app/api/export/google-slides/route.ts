@@ -36,6 +36,9 @@ export async function POST(request: NextRequest) {
     };
 
     // Call Google Apps Script Web App
+    console.log('Calling Google Apps Script URL:', googleAppsScriptUrl);
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch(googleAppsScriptUrl, {
       method: 'POST',
       headers: {
@@ -45,10 +48,27 @@ export async function POST(request: NextRequest) {
       redirect: 'follow',
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Google Apps Script error:', errorText);
-      throw new Error(`Google Apps Script呼び出しエラー: ${response.status}`);
+      console.error('Google Apps Script error response:', errorText);
+      console.error('Response status:', response.status);
+      console.error('Response statusText:', response.statusText);
+      
+      // 401エラーの場合、より詳細な情報を提供
+      if (response.status === 401) {
+        throw new Error(
+          `認証エラー (401): Google Apps Scriptのデプロイ設定を確認してください。\n` +
+          `1. 「アクセスできるユーザー」が「全員」になっているか確認\n` +
+          `2. 「次のユーザーとして実行」が「自分」になっているか確認\n` +
+          `3. デプロイを保存後、新しいURLが生成されていないか確認\n` +
+          `現在のURL: ${googleAppsScriptUrl.substring(0, 50)}...`
+        );
+      }
+      
+      throw new Error(`Google Apps Script呼び出しエラー: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();

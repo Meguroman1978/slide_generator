@@ -37,16 +37,48 @@ export function DraftEditor({ draft: initialDraft, onSave }: DraftEditorProps) {
   };
 
   const addTableOfContentsItem = () => {
+    const newToc = [...draft.tableOfContents, '新しいセクション'];
+    
+    // 対応するスライドも追加（目次の項目数とスライド数が一致している場合）
+    let newSlides = [...draft.slides];
+    if (draft.tableOfContents.length === draft.slides.length) {
+      const newSlideNumber = draft.slides.length + 1;
+      newSlides = [...draft.slides, {
+        slideNumber: newSlideNumber,
+        title: '新しいスライド',
+        keyMessage: 'キーメッセージを入力',
+        estimatedContent: 'スライドの内容概要',
+      }];
+    }
+    
     setDraft({
       ...draft,
-      tableOfContents: [...draft.tableOfContents, '新しいセクション'],
+      tableOfContents: newToc,
+      slides: newSlides,
+      totalSlides: newSlides.length,
     });
     setHasChanges(true);
   };
 
   const removeTableOfContentsItem = (index: number) => {
     const newToc = draft.tableOfContents.filter((_, i) => i !== index);
-    setDraft({ ...draft, tableOfContents: newToc });
+    
+    // 対応するスライドも削除（目次の項目数とスライド数が一致する場合）
+    let newSlides = [...draft.slides];
+    if (draft.tableOfContents.length === draft.slides.length && index < draft.slides.length) {
+      newSlides = draft.slides.filter((_, i) => i !== index);
+      // スライド番号を再採番
+      newSlides.forEach((slide, i) => {
+        slide.slideNumber = i + 1;
+      });
+    }
+    
+    setDraft({ 
+      ...draft, 
+      tableOfContents: newToc,
+      slides: newSlides,
+      totalSlides: newSlides.length
+    });
     setHasChanges(true);
   };
 
@@ -82,7 +114,18 @@ export function DraftEditor({ draft: initialDraft, onSave }: DraftEditorProps) {
       slide.slideNumber = i + 1;
     });
 
-    setDraft({ ...draft, slides: newSlides, totalSlides: newSlides.length });
+    // 対応する目次項目も削除（目次の項目数とスライド数が一致する場合）
+    let newToc = [...draft.tableOfContents];
+    if (draft.tableOfContents.length === draft.slides.length && index < draft.tableOfContents.length) {
+      newToc = draft.tableOfContents.filter((_, i) => i !== index);
+    }
+
+    setDraft({ 
+      ...draft, 
+      slides: newSlides, 
+      tableOfContents: newToc,
+      totalSlides: newSlides.length 
+    });
     setHasChanges(true);
   };
 
@@ -95,9 +138,15 @@ export function DraftEditor({ draft: initialDraft, onSave }: DraftEditorProps) {
       estimatedContent: 'スライドの内容概要',
     };
 
+    // 対応する目次項目も追加（目次の項目数とスライド数が一致している場合）
+    const newToc = draft.tableOfContents.length === draft.slides.length
+      ? [...draft.tableOfContents, '新しいセクション']
+      : draft.tableOfContents;
+
     setDraft({
       ...draft,
       slides: [...draft.slides, newSlide],
+      tableOfContents: newToc,
       totalSlides: newSlideNumber,
     });
     setHasChanges(true);

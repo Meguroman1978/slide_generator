@@ -101,7 +101,21 @@ function doPost(e) {
 function createJsonResponse(data) {
   var output = ContentService.createTextOutput(JSON.stringify(data));
   output.setMimeType(ContentService.MimeType.JSON);
+  
+  // Add CORS headers to allow cross-origin requests
+  output.setHeader('Access-Control-Allow-Origin', '*');
+  output.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  output.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
   return output;
+}
+
+// Handle OPTIONS requests for CORS preflight
+function doOptions(e) {
+  return createJsonResponse({
+    status: 'ok',
+    message: 'CORS preflight'
+  });
 }
 
 function createCoverSlide(slide, data) {
