@@ -151,7 +151,32 @@ export function SettingsDialog() {
                   <h5 className="font-medium mb-3">API キー取得ガイド</h5>
                   <div className="space-y-3 text-sm">
                     <div>
-                      <p className="font-medium">OpenAI API Key（必須）</p>
+                      <p className="font-medium text-primary">Google AI Studio API Key（推奨）</p>
+                      <ol className="list-decimal list-inside space-y-1 text-muted-foreground mt-1">
+                        <li>
+                          <a
+                            href="https://aistudio.google.com/apikey"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            Google AI Studio
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          を開く
+                        </li>
+                        <li>「Create API Key」をクリック</li>
+                        <li>生成されたキー（AIzaSy...）をコピーして下記に貼り付け</li>
+                      </ol>
+                      <div className="mt-2 p-2 bg-green-50 dark:bg-green-950 rounded text-xs">
+                        <p className="text-green-800 dark:text-green-200">
+                          ✨ Gemini 3やNano Bananaなど最新モデルを高速・低コストで利用できます
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="font-medium">OpenAI API Key（オプション）</p>
                       <ol className="list-decimal list-inside space-y-1 text-muted-foreground mt-1">
                         <li>
                           <a
@@ -166,7 +191,7 @@ export function SettingsDialog() {
                           でアカウント作成
                         </li>
                         <li>API Keys ページで「Create new secret key」をクリック</li>
-                        <li>生成されたキーをコピーして下記に貼り付け</li>
+                        <li>生成されたキーをコピー（フォールバック用）</li>
                       </ol>
                     </div>
 
@@ -211,7 +236,27 @@ export function SettingsDialog() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="openai-key">OpenAI API Key（必須）</Label>
+                <Label htmlFor="google-ai-key">
+                  Google AI Studio API Key（推奨・優先使用）
+                  <span className="ml-2 text-xs font-normal text-primary">Gemini 3, Nano Banana</span>
+                </Label>
+                <Input
+                  id="google-ai-key"
+                  type="password"
+                  placeholder="AIzaSy..."
+                  value={settings.googleAiStudioApiKey || ''}
+                  onChange={(e) => updateSettings({ googleAiStudioApiKey: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Gemini APIを優先的に使用します。高速で低コストです。
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="openai-key">
+                  OpenAI API Key（フォールバック）
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">必要時のみ使用</span>
+                </Label>
                 <Input
                   id="openai-key"
                   type="password"
@@ -219,17 +264,9 @@ export function SettingsDialog() {
                   value={settings.openaiApiKey || ''}
                   onChange={(e) => updateSettings({ openaiApiKey: e.target.value })}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="anthropic-key">Anthropic API Key（オプション）</Label>
-                <Input
-                  id="anthropic-key"
-                  type="password"
-                  placeholder="sk-ant-..."
-                  value={settings.anthropicApiKey || ''}
-                  onChange={(e) => updateSettings({ anthropicApiKey: e.target.value })}
-                />
+                <p className="text-xs text-muted-foreground">
+                  Google AI Studio APIが利用できない場合に使用されます。
+                </p>
               </div>
 
               <div className="space-y-2">

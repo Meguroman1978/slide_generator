@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { callGeminiAPI } from '@/lib/ai/gemini-client';
 
 export async function POST(request: NextRequest) {
   try {
     const { files, settings } = await request.json();
 
+    // Try Gemini first, then fall back to OpenAI
+    const geminiKey = settings?.googleAiStudioApiKey || process.env.GOOGLE_AI_STUDIO_API_KEY;
     const openaiKey = settings?.openaiApiKey || process.env.OPENAI_API_KEY;
 
-    if (!openaiKey) {
+    if (!geminiKey && !openaiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured. Please add your API key in settings.' },
+        { error: 'API key not configured. Please add Google AI Studio or OpenAI API key in settings.' },
         { status: 400 }
       );
     }
-
-    const openai = new OpenAI({ apiKey: openaiKey });
 
     // Analyze all files together to understand the context
     const analysisPrompt = `
@@ -43,23 +44,66 @@ ${f.content || '(内容なし)'}
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'あなたは世界最高峰のコンテンツアナリストであり、プレゼンテーション作成の専門家です。JSON形式で正確に回答してください。',
-        },
-        {
-          role: 'user',
-          content: analysisPrompt,
-        },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7,
-    });
+    let analysisResult;
 
-    const analysisResult = JSON.parse(completion.choices[0].message.content || '{}');
+    // Try Gemini first
+    if (geminiKey) {
+      try {
+        console.log('Using Gemini API for analysis');
+        const systemPrompt = 'あなたは世界最高峰のコンテンツアナリストであり、プレゼンテーション作成の専門家です。JSON形式で正確に回答してください。';
+        const geminiResponse = await callGeminiAPI(geminiKey, analysisPrompt, systemPrompt, { temperature: 0.7 });
+        
+        // Extract JSON from response (Gemini sometimes wraps it in code blocks)
+        const jsonMatch = geminiResponse.match(/```json\n?([\s\S]*?)\n?```/) || geminiResponse.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : geminiResponse;
+        analysisResult = JSON.parse(jsonStr);
+      } catch (geminiError) {
+        console.log('Gemini failed, falling back to OpenAI:', geminiError);
+        
+        // Fall back to OpenAI
+        if (!openaiKey) {
+          throw new Error('Gemini API failed and no OpenAI fallback available');
+        }
+        
+        const openai = new OpenAI({ apiKey: openaiKey });
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'あなたは世界最高峰のコンテンツアナリストであり、プレゼンテーション作成の専門家です。JSON形式で正確に回答してください。',
+            },
+            {
+              role: 'user',
+              content: analysisPrompt,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+        });
+        analysisResult = JSON.parse(completion.choices[0].message.content || '{}');
+      }
+    } else {
+      // Use OpenAI directly
+      console.log('Using OpenAI API for analysis');
+      const openai = new OpenAI({ apiKey: openaiKey! });
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'あなたは世界最高峰のコンテンツアナリストであり、プレゼンテーション作成の専門家です。JSON形式で正確に回答してください。',
+          },
+          {
+            role: 'user',
+            content: analysisPrompt,
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+      });
+      analysisResult = JSON.parse(completion.choices[0].message.content || '{}');
+    }
 
     return NextResponse.json({
       analysis: analysisResult,

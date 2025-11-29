@@ -23,8 +23,8 @@ export interface UserSettings {
   animationLevel: AnimationLevel;
   toneStyle: ToneStyle;
   templateUrl?: string;
+  googleAiStudioApiKey?: string;
   openaiApiKey?: string;
-  anthropicApiKey?: string;
   googleAppsScriptUrl?: string;
 }
 

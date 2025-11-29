@@ -266,65 +266,7 @@ export default function Home() {
     }
   };
 
-  const handleExportPowerPoint = async () => {
-    if (slides.length === 0) {
-      toast.error('先にスライドを生成してください');
-      return;
-    }
 
-    setIsProcessing(true);
-    toast.info('PowerPointデータを生成中...');
-
-    try {
-      const response = await fetch('/api/export/powerpoint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slides,
-          metadata: {
-            title: draft?.title || 'AI生成プレゼンテーション',
-          },
-          settings,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'エクスポートに失敗しました');
-      }
-
-      const result = await response.json();
-
-      // Download as JSON file
-      const dataStr = JSON.stringify(result.data, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${result.data.metadata.title || 'presentation'}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success('PowerPointデータをダウンロードしました！', {
-        description: 'Aspose等のオンライン変換ツールでPPTXに変換できます',
-        duration: 7000,
-        action: {
-          label: '変換ツールを開く',
-          onClick: () => {
-            window.open('https://products.aspose.app/cells/ja/conversion/json-to-powerpoint', '_blank');
-          },
-        },
-      });
-
-      setIsProcessing(false);
-    } catch (error: any) {
-      console.error('PowerPoint export error:', error);
-      toast.error(`エクスポートに失敗しました: ${error.message}`);
-      setIsProcessing(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -548,12 +490,12 @@ export default function Home() {
           {/* Export Tab */}
           <TabsContent value="export" className="space-y-6">
             <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">エクスポート</h2>
+              <h2 className="text-2xl font-bold mb-4">Google Slidesへエクスポート</h2>
               <p className="text-muted-foreground mb-6">
-                生成されたプレゼンテーションをGoogle SlidesまたはPowerPointとしてエクスポートします
+                生成されたプレゼンテーションをGoogle Slidesとして保存します
               </p>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="max-w-2xl mx-auto">
                 <Card className="p-6 border-2 hover:border-primary transition-colors">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -593,62 +535,6 @@ export default function Home() {
                     <p className="text-xs text-muted-foreground">
                       ※ Google Apps Script URLの設定が必要です
                     </p>
-                  </div>
-                </Card>
-
-                <Card className="p-6 border-2 hover:border-primary transition-colors">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg">PowerPoint</h3>
-                        <p className="text-sm text-muted-foreground">
-                          JSONデータをダウンロード
-                        </p>
-                      </div>
-                    </div>
-                    <ul className="text-sm space-y-2 text-muted-foreground">
-                      <li>✓ 構造化データを取得</li>
-                      <li>✓ カスタム変換ツール対応</li>
-                      <li>✓ オフライン編集可能</li>
-                    </ul>
-                    <Button 
-                      onClick={handleExportPowerPoint}
-                      disabled={isProcessing}
-                      size="lg" 
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          生成中...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-5 h-5 mr-2" />
-                          JSONをダウンロード
-                        </>
-                      )}
-                    </Button>
-                    <div className="text-xs space-y-2">
-                      <p className="text-muted-foreground">
-                        ※ JSONファイルを変換ツールで処理してください
-                      </p>
-                      <div className="p-2 bg-muted rounded text-xs">
-                        <p className="font-medium mb-1">推奨変換ツール:</p>
-                        <a 
-                          href="https://products.aspose.app/cells/ja/conversion/json-to-powerpoint"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          Aspose JSON to PowerPoint Converter ↗
-                        </a>
-                      </div>
-                    </div>
                   </div>
                 </Card>
               </div>
@@ -699,30 +585,29 @@ export default function Home() {
             <Card className="p-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
               <h3 className="font-bold mb-3 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-blue-600" />
-                エクスポート後の使い方
+                Google Slidesの使い方
               </h3>
               <div className="space-y-3 text-sm">
                 <div>
-                  <p className="font-medium">Google Slides:</p>
+                  <p className="font-medium">エクスポート後:</p>
                   <p className="text-muted-foreground">
                     1. 「Google Slidesで開く」をクリック
                     <br />
-                    2. 新しいタブでプレゼンテーションが開きます
+                    2. 新しいタブでプレゼンテーションが自動的に開きます
                     <br />
                     3. Google Driveに自動保存されます
+                    <br />
+                    4. リアルタイム共同編集、コメント、バージョン履歴が利用可能
                   </p>
                 </div>
-                <div>
-                  <p className="font-medium">PowerPoint:</p>
-                  <p className="text-muted-foreground">
-                    1. 「JSONをダウンロード」をクリック
-                    <br />
-                    2. <a href="https://products.aspose.app/cells/ja/conversion/json-to-powerpoint" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Aspose Converter</a>でJSONをアップロード
-                    <br />
-                    3. 変換されたPPTXファイルをダウンロード
-                    <br />
-                    ※ 今後のアップデートで直接PPTX出力に対応予定
-                  </p>
+                <div className="p-3 bg-white dark:bg-gray-900 rounded-lg">
+                  <p className="font-medium text-primary mb-1">✨ Google Slidesの利点</p>
+                  <ul className="text-muted-foreground space-y-1">
+                    <li>• どこからでもアクセス可能</li>
+                    <li>• チーム全員とリアルタイムで共同作業</li>
+                    <li>• 変更履歴を自動保存</li>
+                    <li>• PowerPointへのエクスポートも可能</li>
+                  </ul>
                 </div>
               </div>
             </Card>
