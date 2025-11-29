@@ -60,22 +60,37 @@ export async function POST(request: NextRequest) {
 
 async function parsePDFFile(file: File) {
   const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
   
   try {
-    // Dynamic import to avoid ESM issues
-    const pdfParse = (await import('pdf-parse')).default;
-    const data = await pdfParse(buffer);
+    // Use pdfjs-dist for better compatibility
+    const pdfjsLib = await import('pdfjs-dist');
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: bytes });
+    const pdfDocument = await loadingTask.promise;
+    
+    let fullText = '';
+    const numPages = pdfDocument.numPages;
+    
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      const page = await pdfDocument.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
+    }
     
     return NextResponse.json({
-      content: data.text,
+      content: fullText.trim(),
       metadata: {
-        pages: data.numpages,
-        info: data.info,
-        version: data.version,
+        pages: numPages,
+        pdfInfo: await pdfDocument.getMetadata(),
       },
     });
   } catch (error: any) {
+    console.error('PDF parsing error:', error);
     return NextResponse.json(
       { error: `PDF parsing failed: ${error.message}` },
       { status: 500 }
