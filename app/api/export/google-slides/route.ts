@@ -32,15 +32,23 @@ export async function POST(request: NextRequest) {
       companyLogoUrl = imageMap.get('company_logo')?.url || null;
     }
 
+    // Ensure default template URL is always used
+    const templateUrl = settings?.templateUrl || 
+                        process.env.DEFAULT_TEMPLATE_URL || 
+                        'https://docs.google.com/presentation/d/1p826KUscu_89-uu7-ILYdxD21EpJbhcSTUhGX3WrI5Q/edit';
+
+    console.log('Using template URL:', templateUrl);
+
     // Prepare data for Google Apps Script
     const payload = {
       metadata: {
         title: metadata.title || 'AI生成プレゼンテーション',
         createdAt: new Date().toISOString(),
-        templateUrl: settings?.templateUrl,
+        templateUrl, // Always include template URL
         settings: {
           ...settings,
           companyLogoUrl, // Add company logo URL
+          templateUrl, // Ensure template URL is in settings too
         },
       },
       slides: slides.map((slide: any) => {

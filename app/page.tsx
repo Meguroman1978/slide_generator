@@ -13,6 +13,7 @@ import { StorylineSelector } from '@/components/StorylineSelector';
 import { DraftReview } from '@/components/DraftReview';
 import { DraftEditor } from '@/components/DraftEditor';
 import { PresentationTypeSelector } from '@/components/PresentationTypeSelector';
+import { AudienceSelector } from '@/components/AudienceSelector';
 import { usePresentationStore } from '@/lib/stores/presentationStore';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ export default function Home() {
   const {
     uploadedFiles,
     settings,
+    updateSettings,
     presentationType,
     setPresentationType,
     analysisResults,
@@ -341,6 +343,13 @@ export default function Home() {
             <Card className="p-6">
               <FileUploader />
             </Card>
+
+            <AudienceSelector
+              audienceType={settings.audienceType || 'external'}
+              companyName={settings.companyName || ''}
+              onAudienceTypeChange={(value) => updateSettings({ audienceType: value })}
+              onCompanyNameChange={(value) => updateSettings({ companyName: value })}
+            />
 
             <PresentationTypeSelector
               value={presentationType}

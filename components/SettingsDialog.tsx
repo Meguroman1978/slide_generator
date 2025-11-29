@@ -112,53 +112,23 @@ export function SettingsDialog() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="audienceType">対象オーディエンス</Label>
-                <Select
-                  value={settings.audienceType || 'external'}
-                  onValueChange={(value) => updateSettings({ audienceType: value as 'external' | 'internal' })}
-                >
-                  <SelectTrigger id="audienceType">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="external">社外向け資料</SelectItem>
-                    <SelectItem value="internal">社内向け資料</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {settings.audienceType === 'external' && (
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">会社名/ブランド名</Label>
-                  <Input
-                    id="companyName"
-                    type="text"
-                    placeholder="例: 株式会社サンプル"
-                    value={settings.companyName || ''}
-                    onChange={(e) => updateSettings({ companyName: e.target.value })}
-                    autoComplete="off"
-                    data-form-type="other"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    プレゼンテーション対象の会社名やブランド名を入力してください
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="template">テンプレートURL</Label>
+                <Label htmlFor="template">
+                  テンプレートURL
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">(オプション)</span>
+                </Label>
                 <Input
                   id="template"
                   type="url"
-                  placeholder="https://docs.google.com/presentation/d/..."
+                  placeholder="デフォルトテンプレートを使用"
                   value={settings.templateUrl || ''}
                   onChange={(e) => updateSettings({ templateUrl: e.target.value })}
                   autoComplete="off"
                   data-form-type="other"
                 />
                 <p className="text-xs text-muted-foreground">
-                  デフォルト: 標準テンプレート（変数置換対応）<br />
-                  カスタムテンプレートを使用する場合は別のURLを入力してください
+                  <strong>デフォルト:</strong> https://docs.google.com/presentation/d/1p826KUscu_89-uu7-ILYdxD21EpJbhcSTUhGX3WrI5Q/edit<br />
+                  空欄の場合、デフォルトテンプレート（変数置換対応）が自動的に使用されます。<br />
+                  別のテンプレートを使用する場合のみURLを入力してください。
                 </p>
               </div>
             </div>
