@@ -12,6 +12,7 @@ import { SettingsDialog } from '@/components/SettingsDialog';
 import { StorylineSelector } from '@/components/StorylineSelector';
 import { DraftReview } from '@/components/DraftReview';
 import { DraftEditor } from '@/components/DraftEditor';
+import { PresentationTypeSelector } from '@/components/PresentationTypeSelector';
 import { usePresentationStore } from '@/lib/stores/presentationStore';
 import { toast } from 'sonner';
 
@@ -19,6 +20,8 @@ export default function Home() {
   const {
     uploadedFiles,
     settings,
+    presentationType,
+    setPresentationType,
     analysisResults,
     setAnalysisResults,
     storylineProposals,
@@ -100,6 +103,7 @@ export default function Home() {
           analysis: analysisData,
           userInstructions,
           settings,
+          presentationType,
         }),
       });
 
@@ -304,8 +308,14 @@ export default function Home() {
       URL.revokeObjectURL(url);
 
       toast.success('PowerPointデータをダウンロードしました！', {
-        description: 'JSONファイルをPowerPoint変換ツールで開いてください',
-        duration: 5000,
+        description: 'Aspose等のオンライン変換ツールでPPTXに変換できます',
+        duration: 7000,
+        action: {
+          label: '変換ツールを開く',
+          onClick: () => {
+            window.open('https://products.aspose.app/cells/ja/conversion/json-to-powerpoint', '_blank');
+          },
+        },
       });
 
       setIsProcessing(false);
@@ -389,6 +399,11 @@ export default function Home() {
             <Card className="p-6">
               <FileUploader />
             </Card>
+
+            <PresentationTypeSelector
+              value={presentationType}
+              onChange={setPresentationType}
+            />
 
             <Card className="p-6">
               <div className="space-y-4">
@@ -618,11 +633,65 @@ export default function Home() {
                         </>
                       )}
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      ※ JSONファイルを変換ツールで処理してください
-                    </p>
+                    <div className="text-xs space-y-2">
+                      <p className="text-muted-foreground">
+                        ※ JSONファイルを変換ツールで処理してください
+                      </p>
+                      <div className="p-2 bg-muted rounded text-xs">
+                        <p className="font-medium mb-1">推奨変換ツール:</p>
+                        <a 
+                          href="https://products.aspose.app/cells/ja/conversion/json-to-powerpoint"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          Aspose JSON to PowerPoint Converter ↗
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </Card>
+              </div>
+            </Card>
+
+            {/* Google Apps Script 401 Error Help */}
+            <Card className="p-6 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-900">
+              <h3 className="font-bold mb-3 text-amber-900 dark:text-amber-100">
+                ⚠️ Google Slides 401エラーが発生する場合
+              </h3>
+              <div className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
+                <p className="font-medium">3ステップで簡単に解決:</p>
+                <ol className="list-decimal list-inside space-y-1 ml-2">
+                  <li>
+                    <code className="bg-amber-100 dark:bg-amber-900 px-2 py-0.5 rounded">apps-script/Code.gs</code>
+                    をコピー
+                  </li>
+                  <li>
+                    <a 
+                      href="https://script.google.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Google Apps Script ↗
+                    </a>
+                    で新規プロジェクトを作成してペースト
+                  </li>
+                  <li>
+                    デプロイ → 新しいデプロイ → ウェブアプリ →{' '}
+                    <strong>「アクセスできるユーザー」を「全員」</strong>に設定してURLを取得
+                  </li>
+                </ol>
+                <p className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-800">
+                  詳細は{' '}
+                  <a 
+                    href="/docs/API_SETUP_GUIDE.md"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    APIセットアップガイド
+                  </a>
+                  {' '}をご覧ください
+                </p>
               </div>
             </Card>
 
@@ -648,9 +717,11 @@ export default function Home() {
                   <p className="text-muted-foreground">
                     1. 「JSONをダウンロード」をクリック
                     <br />
-                    2. ダウンロードしたJSONファイルを保存
+                    2. <a href="https://products.aspose.app/cells/ja/conversion/json-to-powerpoint" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Aspose Converter</a>でJSONをアップロード
                     <br />
-                    3. PowerPoint変換ツールでPPTXに変換（今後のアップデートで直接PPTX出力対応予定）
+                    3. 変換されたPPTXファイルをダウンロード
+                    <br />
+                    ※ 今後のアップデートで直接PPTX出力に対応予定
                   </p>
                 </div>
               </div>

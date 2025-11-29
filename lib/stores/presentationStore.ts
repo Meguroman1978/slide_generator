@@ -16,6 +16,10 @@ interface PresentationState {
   settings: UserSettings;
   updateSettings: (settings: Partial<UserSettings>) => void;
 
+  // Presentation Type
+  presentationType: string;
+  setPresentationType: (type: string) => void;
+
   // File Management
   uploadedFiles: UploadedFile[];
   addFile: (file: UploadedFile) => void;
@@ -53,6 +57,7 @@ interface PresentationState {
 
 const initialState = {
   settings: DEFAULT_SETTINGS,
+  presentationType: '',
   uploadedFiles: [],
   analysisResults: [],
   storylineProposals: [],
@@ -72,6 +77,11 @@ export const usePresentationStore = create<PresentationState>()(
         set((state) => ({
           settings: { ...state.settings, ...newSettings },
         })),
+
+      setPresentationType: (type) =>
+        set({
+          presentationType: type,
+        }),
 
       addFile: (file) =>
         set((state) => ({
