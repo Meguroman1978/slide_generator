@@ -68,7 +68,9 @@ async function parsePDF(file: File): Promise<{ content: string; metadata: Record
   });
 
   if (!response.ok) {
-    throw new Error('Failed to parse PDF');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    const errorMessage = errorData.error || 'Failed to parse PDF';
+    throw new Error(`PDF解析に失敗しました: ${errorMessage}`);
   }
 
   return response.json();

@@ -1,32 +1,49 @@
 'use client';
 
+import { useState } from 'react';
 import { StorylineProposal } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CheckCircle2, Sparkles } from 'lucide-react';
+import { CustomStoryline } from './CustomStoryline';
 
 interface StorylineSelectorProps {
   proposals: StorylineProposal[];
   selectedId: string | null;
   onSelect: (proposal: StorylineProposal) => void;
+  analysisContext?: any;
 }
 
 export function StorylineSelector({
   proposals,
   selectedId,
   onSelect,
+  analysisContext,
 }: StorylineSelectorProps) {
+  const [activeTab, setActiveTab] = useState<'proposals' | 'custom'>('proposals');
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">ストーリーライン案を選択</h2>
         <p className="text-muted-foreground">
-          以下の5つのストーリーライン案から最適なものを選択してください
+          AI提案から選択するか、独自のストーリーラインを作成してください
         </p>
       </div>
 
-      <div className="grid gap-4">
-        {proposals.map((proposal, index) => (
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="proposals">AI提案（5案）</TabsTrigger>
+          <TabsTrigger value="custom">
+            <Sparkles className="w-4 h-4 mr-2" />
+            カスタム作成
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="proposals" className="space-y-4 mt-4">
+          <div className="grid gap-4">
+            {proposals.map((proposal, index) => (
           <Card
             key={proposal.id}
             className={`p-6 cursor-pointer transition-all hover:shadow-lg ${
@@ -83,9 +100,21 @@ export function StorylineSelector({
                 </div>
               </div>
             </div>
-          </Card>
-        ))}
-      </div>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="custom" className="mt-4">
+          <CustomStoryline
+            analysisContext={analysisContext}
+            onComplete={(storyline) => {
+              onSelect(storyline);
+              setActiveTab('proposals');
+            }}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

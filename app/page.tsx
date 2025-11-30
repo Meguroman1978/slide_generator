@@ -11,6 +11,10 @@ import { FileUploader } from '@/components/FileUploader';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { StorylineSelector } from '@/components/StorylineSelector';
 import { DraftReview } from '@/components/DraftReview';
+import { DraftEditor } from '@/components/DraftEditor';
+import { PresentationTypeSelector } from '@/components/PresentationTypeSelector';
+import { AudienceSelector } from '@/components/AudienceSelector';
+import { SlideCountSelector } from '@/components/SlideCountSelector';
 import { usePresentationStore } from '@/lib/stores/presentationStore';
 import { toast } from 'sonner';
 
@@ -18,6 +22,9 @@ export default function Home() {
   const {
     uploadedFiles,
     settings,
+    updateSettings,
+    presentationType,
+    setPresentationType,
     analysisResults,
     setAnalysisResults,
     storylineProposals,
@@ -35,6 +42,7 @@ export default function Home() {
   const [userInstructions, setUserInstructions] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [slideCount, setSlideCount] = useState(15); // デフォルト15枚
 
   const handleAnalyze = async () => {
     if (uploadedFiles.length === 0) {
@@ -99,6 +107,7 @@ export default function Home() {
           analysis: analysisData,
           userInstructions,
           settings,
+          presentationType,
         }),
       });
 
@@ -140,6 +149,7 @@ export default function Home() {
           storyline: selectedStoryline,
           analysis: analysisResults[0],
           settings,
+          slideCount, // スライド枚数を追加
         }),
       });
 
@@ -204,15 +214,64 @@ export default function Home() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExportGoogleSlides = async () => {
     if (slides.length === 0) {
       toast.error('先にスライドを生成してください');
       return;
     }
 
-    toast.info('エクスポート機能は実装中です');
-    // Export logic will be implemented
+    setIsProcessing(true);
+    toast.info('Google Slidesを生成中...');
+
+    try {
+      const response = await fetch('/api/export/google-slides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slides,
+          metadata: {
+            title: draft?.title || 'AI生成プレゼンテーション',
+          },
+          settings,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.needsSetup) {
+          toast.error(result.error, {
+            duration: 5000,
+            action: {
+              label: '設定を開く',
+              onClick: () => {
+                // Settings dialog will open
+              },
+            },
+          });
+        } else {
+          throw new Error(result.error || 'エクスポートに失敗しました');
+        }
+        setIsProcessing(false);
+        return;
+      }
+
+      toast.success('Google Slidesの作成に成功しました！');
+      
+      // Open the generated presentation in a new tab
+      if (result.url) {
+        window.open(result.url, '_blank');
+      }
+
+      setIsProcessing(false);
+    } catch (error: any) {
+      console.error('Google Slides export error:', error);
+      toast.error(`エクスポートに失敗しました: ${error.message}`);
+      setIsProcessing(false);
+    }
   };
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -288,6 +347,23 @@ export default function Home() {
               <FileUploader />
             </Card>
 
+            <AudienceSelector
+              audienceType={settings.audienceType || 'external'}
+              companyName={settings.companyName || ''}
+              onAudienceTypeChange={(value) => updateSettings({ audienceType: value })}
+              onCompanyNameChange={(value) => updateSettings({ companyName: value })}
+            />
+
+            <PresentationTypeSelector
+              value={presentationType}
+              onChange={setPresentationType}
+            />
+
+            <SlideCountSelector
+              slideCount={slideCount}
+              onSlideCountChange={setSlideCount}
+            />
+
             <Card className="p-6">
               <div className="space-y-4">
                 <div>
@@ -328,6 +404,7 @@ export default function Home() {
               proposals={storylineProposals}
               selectedId={selectedStoryline?.id || null}
               onSelect={selectStoryline}
+              analysisContext={analysisResults[0]}
             />
 
             <div className="flex justify-end">
@@ -353,7 +430,22 @@ export default function Home() {
 
           {/* Draft Tab */}
           <TabsContent value="draft" className="space-y-6">
-            {draft && <DraftReview draft={draft} />}
+            {draft && (
+              <>
+                <Tabs defaultValue="preview">
+                  <TabsList>
+                    <TabsTrigger value="preview">プレビュー</TabsTrigger>
+                    <TabsTrigger value="edit">編集モード</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="preview" className="mt-4">
+                    <DraftReview draft={draft} />
+                  </TabsContent>
+                  <TabsContent value="edit" className="mt-4">
+                    <DraftEditor draft={draft} onSave={(updatedDraft) => setDraft(updatedDraft)} />
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
 
             <div className="flex justify-end gap-4">
               <Button variant="outline" onClick={() => setCurrentStep('storyline')}>
@@ -415,24 +507,125 @@ export default function Home() {
           {/* Export Tab */}
           <TabsContent value="export" className="space-y-6">
             <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">エクスポート</h2>
+              <h2 className="text-2xl font-bold mb-4">Google Slidesへエクスポート</h2>
               <p className="text-muted-foreground mb-6">
-                生成されたプレゼンテーションをGoogle SlidesまたはPowerPointとしてエクスポートします
+                生成されたプレゼンテーションをGoogle Slidesとして保存します
               </p>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <Button onClick={handleExport} size="lg" className="h-24">
-                  <div className="flex flex-col items-center gap-2">
-                    <Download className="w-6 h-6" />
-                    <span>Google Slides</span>
+              <div className="max-w-2xl mx-auto">
+                <Card className="p-6 border-2 hover:border-primary transition-colors">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Presentation className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Google Slides</h3>
+                        <p className="text-sm text-muted-foreground">
+                          クラウドで直接編集可能
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="text-sm space-y-2 text-muted-foreground">
+                      <li>✓ ブラウザで即座に開く</li>
+                      <li>✓ リアルタイム共同編集</li>
+                      <li>✓ 自動保存・バージョン管理</li>
+                    </ul>
+                    <Button 
+                      onClick={handleExportGoogleSlides} 
+                      disabled={isProcessing}
+                      size="lg" 
+                      className="w-full"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-5 h-5 mr-2" />
+                          Google Slidesで開く
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      ※ Google Apps Script URLの設定が必要です
+                    </p>
                   </div>
-                </Button>
-                <Button onClick={handleExport} size="lg" variant="outline" className="h-24">
-                  <div className="flex flex-col items-center gap-2">
-                    <Download className="w-6 h-6" />
-                    <span>PowerPoint (PPTX)</span>
-                  </div>
-                </Button>
+                </Card>
+              </div>
+            </Card>
+
+            {/* Google Apps Script 401 Error Help */}
+            <Card className="p-6 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-900">
+              <h3 className="font-bold mb-3 text-amber-900 dark:text-amber-100">
+                ⚠️ Google Slides 401エラーが発生する場合
+              </h3>
+              <div className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
+                <p className="font-medium">3ステップで簡単に解決:</p>
+                <ol className="list-decimal list-inside space-y-1 ml-2">
+                  <li>
+                    <code className="bg-amber-100 dark:bg-amber-900 px-2 py-0.5 rounded">apps-script/Code.gs</code>
+                    をコピー
+                  </li>
+                  <li>
+                    <a 
+                      href="https://script.google.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Google Apps Script ↗
+                    </a>
+                    で新規プロジェクトを作成してペースト
+                  </li>
+                  <li>
+                    デプロイ → 新しいデプロイ → ウェブアプリ →{' '}
+                    <strong>「アクセスできるユーザー」を「全員」</strong>に設定してURLを取得
+                  </li>
+                </ol>
+                <p className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-800">
+                  詳細は{' '}
+                  <a 
+                    href="/docs/API_SETUP_GUIDE.md"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    APIセットアップガイド
+                  </a>
+                  {' '}をご覧ください
+                </p>
+              </div>
+            </Card>
+
+            {/* Instructions */}
+            <Card className="p-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900">
+              <h3 className="font-bold mb-3 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+                Google Slidesの使い方
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="font-medium">エクスポート後:</p>
+                  <p className="text-muted-foreground">
+                    1. 「Google Slidesで開く」をクリック
+                    <br />
+                    2. 新しいタブでプレゼンテーションが自動的に開きます
+                    <br />
+                    3. Google Driveに自動保存されます
+                    <br />
+                    4. リアルタイム共同編集、コメント、バージョン履歴が利用可能
+                  </p>
+                </div>
+                <div className="p-3 bg-white dark:bg-gray-900 rounded-lg">
+                  <p className="font-medium text-primary mb-1">✨ Google Slidesの利点</p>
+                  <ul className="text-muted-foreground space-y-1">
+                    <li>• どこからでもアクセス可能</li>
+                    <li>• チーム全員とリアルタイムで共同作業</li>
+                    <li>• 変更履歴を自動保存</li>
+                    <li>• PowerPointへのエクスポートも可能</li>
+                  </ul>
+                </div>
               </div>
             </Card>
           </TabsContent>

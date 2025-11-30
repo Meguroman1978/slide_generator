@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, unlink } from 'fs/promises';
-import { join } from 'path';
-import pdf from 'pdf-parse';
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,7 +63,9 @@ async function parsePDFFile(file: File) {
   const buffer = Buffer.from(bytes);
   
   try {
-    const data = await pdf(buffer);
+    // Use pdf-parse for better Node.js compatibility
+    const pdf = await import('pdf-parse');
+    const data = await pdf.default(buffer);
     
     return NextResponse.json({
       content: data.text,
@@ -79,10 +76,46 @@ async function parsePDFFile(file: File) {
       },
     });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: `PDF parsing failed: ${error.message}` },
-      { status: 500 }
-    );
+    console.error('PDF parsing error:', error);
+    
+    // Fallback to pdfjs-dist if pdf-parse fails
+    try {
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      
+      // Load the PDF document
+      const loadingTask = pdfjsLib.getDocument({
+        data: bytes,
+        useSystemFonts: true,
+      });
+      const pdfDocument = await loadingTask.promise;
+      
+      let fullText = '';
+      const numPages = pdfDocument.numPages;
+      
+      // Extract text from each page
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        const page = await pdfDocument.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        fullText += pageText + '\n\n';
+      }
+      
+      return NextResponse.json({
+        content: fullText.trim(),
+        metadata: {
+          pages: numPages,
+          method: 'pdfjs-dist',
+        },
+      });
+    } catch (fallbackError: any) {
+      console.error('Fallback PDF parsing error:', fallbackError);
+      return NextResponse.json(
+        { error: `PDF parsing failed: ${fallbackError.message}. Please ensure the PDF is not password-protected and is a valid PDF file.` },
+        { status: 500 }
+      );
+    }
   }
 }
 
@@ -91,6 +124,8 @@ async function parseWordFile(file: File) {
   const buffer = Buffer.from(bytes);
   
   try {
+    // Dynamic import
+    const mammoth = (await import('mammoth')).default;
     const result = await mammoth.extractRawText({ buffer });
     
     return NextResponse.json({
@@ -113,6 +148,8 @@ async function parseExcelFile(file: File) {
   const buffer = Buffer.from(bytes);
   
   try {
+    // Dynamic import
+    const XLSX = await import('xlsx');
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     
     let content = '';

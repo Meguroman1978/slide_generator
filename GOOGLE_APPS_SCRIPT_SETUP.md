@@ -1,16 +1,28 @@
+# Google Apps Script セットアップガイド
+
+このガイドでは、AI Presentation GeneratorでGoogle Slidesへの直接出力を可能にするGoogle Apps Scriptの設定方法を説明します。
+
+## 📋 必要なもの
+
+- Googleアカウント
+- Google Apps Scriptへのアクセス権限
+- 5分程度の時間
+
+## 🚀 3ステップで完了！
+
+### ステップ 1: コードをコピー
+
+1. プロジェクトの `apps-script/Code.gs` ファイルを開きます
+2. **全てのコードをコピー**します（下記参照）
+
+<details>
+<summary>📝 Code.gs の内容を表示（クリックして展開）</summary>
+
+```javascript
 /**
  * AI Presentation Generator - Google Apps Script
  * 
  * このスクリプトは、AI Presentation GeneratorからのリクエストをGoogle Slidesに変換します。
- * 
- * セットアップ手順:
- * 1. Google Apps Script (https://script.google.com/) で新しいプロジェクトを作成
- * 2. このコードをCode.gsに貼り付け
- * 3. 「デプロイ」→「新しいデプロイ」→「ウェブアプリ」を選択
- * 4. 「次のユーザーとして実行」を「自分」に設定
- * 5. 「アクセスできるユーザー」を「全員」に設定
- * 6. 「デプロイ」をクリックしてURLを取得
- * 7. 取得したURLをWebアプリの設定に追加
  */
 
 function doPost(e) {
@@ -101,21 +113,7 @@ function doPost(e) {
 function createJsonResponse(data) {
   var output = ContentService.createTextOutput(JSON.stringify(data));
   output.setMimeType(ContentService.MimeType.JSON);
-  
-  // Add CORS headers to allow cross-origin requests
-  output.setHeader('Access-Control-Allow-Origin', '*');
-  output.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  output.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
   return output;
-}
-
-// Handle OPTIONS requests for CORS preflight
-function doOptions(e) {
-  return createJsonResponse({
-    status: 'ok',
-    message: 'CORS preflight'
-  });
 }
 
 function createCoverSlide(slide, data) {
@@ -208,3 +206,109 @@ function doGet(e) {
     timestamp: new Date().toISOString()
   });
 }
+```
+
+</details>
+
+### ステップ 2: Google Apps Scriptプロジェクトを作成
+
+1. **https://script.google.com/** を開きます
+2. 「新しいプロジェクト」をクリック
+3. プロジェクトに分かりやすい名前を付けます（例：「AI Presentation Generator」）
+4. デフォルトの `myFunction()` コードを削除
+5. **ステップ1でコピーしたコードを貼り付け**
+6. 「保存」ボタン（💾アイコン）をクリック
+
+### ステップ 3: ウェブアプリとしてデプロイ
+
+これが最も重要なステップです！
+
+1. 右上の「デプロイ」→「新しいデプロイ」をクリック
+2. 「種類の選択」で⚙️アイコンをクリックし、「ウェブアプリ」を選択
+3. **重要な設定:**
+   - **説明**: 「AI Presentation Generator」など（任意）
+   - **次のユーザーとして実行**: 「自分」を選択
+   - **アクセスできるユーザー**: **「全員」を選択** ⚠️ これが重要！
+4. 「デプロイ」ボタンをクリック
+5. 権限の承認を求められたら：
+   - 「アクセスを承認」をクリック
+   - Googleアカウントを選択
+   - 「詳細」→「AI Presentation Generator（安全ではないページ）に移動」をクリック
+   - 「許可」をクリック
+6. **ウェブアプリのURL**をコピー（例：`https://script.google.com/macros/s/AKfycby.../exec`）
+
+### ステップ 4: URLをアプリに設定
+
+1. AI Presentation Generatorアプリを開く
+2. 右上の「⚙️ 設定」をクリック
+3. 「Google Apps Script URL」フィールドに**ステップ3でコピーしたURL**を貼り付け
+4. 「保存」をクリック
+
+## ✅ 動作確認
+
+1. アプリでファイルをアップロードして分析
+2. ストーリーライン選択 → ドラフト確認 → スライド生成
+3. 「エクスポート」タブで「Google Slidesで開く」をクリック
+4. 新しいタブでGoogle Slidesが開けば**成功！** 🎉
+
+## ⚠️ よくあるエラーと解決方法
+
+### エラー: 401 Unauthorized
+
+**原因**: アクセス権限が正しく設定されていない
+
+**解決方法**:
+1. Google Apps Scriptプロジェクトに戻る
+2. 「デプロイ」→「デプロイを管理」をクリック
+3. 鉛筆アイコン（編集）をクリック
+4. 「アクセスできるユーザー」が**「全員」**になっているか確認
+5. 「全員」でない場合は変更して「デプロイ」をクリック
+6. 新しいURLが生成される場合があるので、再度アプリに設定
+
+### エラー: Invalid JSON
+
+**原因**: データ送信時の問題
+
+**解決方法**:
+1. スライド生成を再実行
+2. それでも解決しない場合は、アプリを再読み込み
+
+### エラー: Script function not found
+
+**原因**: Code.gsのコードが正しく保存されていない
+
+**解決方法**:
+1. Google Apps Scriptプロジェクトで`doPost`関数が存在するか確認
+2. コードを再度コピー＆ペーストして保存
+3. 再度デプロイ
+
+## 🔒 セキュリティについて
+
+「アクセスできるユーザー: 全員」設定は、URLを知っている人なら誰でもスクリプトを実行できることを意味します。
+
+ただし：
+- URLは推測困難な長い文字列です
+- スクリプトはGoogle Slidesを作成するだけで、データの読み取りはしません
+- 作成されたスライドはあなたのGoogleドライブに保存されます
+
+より高いセキュリティが必要な場合は、OAuth認証の実装を検討してください。
+
+## 📝 トラブルシューティング
+
+問題が解決しない場合：
+
+1. **ブラウザのキャッシュをクリア**
+2. **シークレットモードで試す**
+3. **Google Apps Scriptのログを確認**:
+   - プロジェクトで「実行数」をクリック
+   - エラーメッセージを確認
+4. **APIキーが正しく設定されているか確認**
+
+## 🎯 まとめ
+
+✅ Code.gsをコピー  
+✅ Google Apps Scriptプロジェクトを作成  
+✅ **「アクセスできるユーザー」を「全員」に設定してデプロイ**  
+✅ URLをアプリに設定  
+
+これで、ワンクリックでGoogle Slidesを生成できます！ 🚀
